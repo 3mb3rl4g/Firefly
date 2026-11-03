@@ -105,22 +105,28 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		children: [
 			{
 				name: "GitHub",
-				url: "https://github.com/CuteLeaf/Firefly",
+				url: "https://github.com/3mb3rl4g",
 				external: true,
 				icon: "fa7-brands:github",
 			},
 			{
-				name: "Gitee",
-				url: "https://gitee.com/CuteLeaf/Firefly",
+				name: "Bilibili",
+				url: "https://space.bilibili.com/66438379",
 				external: true,
-				icon: "fa7-brands:gitee",
+				icon: "fa7-brands:bilibili",
 			},
-			{
-				name: "Firefly文档",
-				url: "https://docs-firefly.cuteleaf.cn",
-				external: true,
-				icon: "material-symbols:docs",
-			},
+			// {
+			// 	name: "Gitee",
+			// 	url: "https://gitee.com/CuteLeaf/Firefly",
+			// 	external: true,
+			// 	icon: "fa7-brands:gitee",
+			// },
+			// {
+			// 	name: "Firefly文档",
+			// 	url: "https://docs-firefly.cuteleaf.cn",
+			// 	external: true,
+			// 	icon: "material-symbols:docs",
+			// },
 		],
 	});
 

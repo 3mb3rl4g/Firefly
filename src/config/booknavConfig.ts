@@ -65,7 +65,7 @@ export const booknavConfig: BooknavGroup[] = [
 			{
 				title: "Windows 11 轻松设置",
 				url: "https://www.bilibili.com/opus/904672369138729017",
-				desc: "300KB 免安装的系统优化小工具（最新版发布页）",
+				desc: "300KB 免安装的系统优化小工具",
 				weight: 50,
 			},
 			{

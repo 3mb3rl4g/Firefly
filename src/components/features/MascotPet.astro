@@ -1,0 +1,158 @@
+---
+// 网页桌宠（web-mascot / Shimeji 格式）
+//
+// 引擎会在 <body> 末尾插入 position:fixed 的宠物包裹层（内联 z-index:1），
+// 所以这里在客户端把它提到配置的层级，避免被壁纸 / 文章卡片遮住。
+// 包裹层不在 Swup 的 containers 里，切页后依然存在（脚本用 window 标记去重）。
+import { mascotConfig } from "@/config";
+---
+
+{mascotConfig.enable && (
+	<div
+		id="mascot-viewport"
+		aria-hidden="true"
+		style={`z-index:${mascotConfig.zIndex}`}
+	></div>
+)}
+
+{mascotConfig.enable && (
+	<style is:global>{`
+		/* 宠物宿主层：固定铺满视口，作为引擎的 container（始终在视口内，不会被判为不可见） */
+		#mascot-viewport {
+			position: fixed;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			overflow: visible;
+			pointer-events: none;
+		}
+	`}</style>
+)}
+
+{mascotConfig.enable && (
+	<script>
+		import { mascotConfig } from "@/config";
+
+		interface MascotModule {
+			configure: (options: {
+				assets?: string;
+				animationConfigUrl?: string;
+			}) => void;
+			createMascot: (options: {
+				container: HTMLElement;
+				pack: string;
+				clickThrough?: boolean;
+				scrollSquash?: boolean;
+			}) => Promise<unknown>;
+			/** 静态配置：externalScroll=true 时引擎不跟随页面滚动 */
+			MascotEngine?: { externalScroll: boolean };
+		}
+
+		const BOOTED_FLAG = "__fireflyMascotBooted";
+		const SPRITE_SELECTOR = 'img[src*="/mascot/mascot_pack/"]';
+
+		/**
+		 * 引擎给每只宠物的包裹层内联写了 `z-index: 1`，会被文章卡片盖住。
+		 * 这里统一提到配置的层级（高于壁纸和卡片，低于导航栏/搜索面板）。
+		 * @returns 是否已经处理完所有宠物
+		 */
+		function raiseMascotLayers(): boolean {
+			const sprites = document.querySelectorAll<HTMLImageElement>(SPRITE_SELECTOR);
+			let raised = 0;
+			for (const sprite of sprites) {
+				const layer = sprite.parentElement;
+				if (!layer || layer.style.position !== "fixed") continue;
+				layer.style.zIndex = String(mascotConfig.zIndex);
+				raised += 1;
+			}
+			return raised >= mascotConfig.packs.length;
+		}
+
+		async function mountMascots(): Promise<void> {
+			const base = mascotConfig.basePath.replace(/\/+$/, "");
+
+			let mod: MascotModule;
+			try {
+				mod = (await import(
+					/* @vite-ignore */ `${base}/index.js`
+				)) as MascotModule;
+			} catch (error) {
+				console.warn("[mascot] 引擎加载失败，已跳过桌宠", error);
+				return;
+			}
+
+			// followScroll=false 时关掉引擎的「跟随页面滚动」（externalScroll=true）
+			if (mod.MascotEngine) {
+				mod.MascotEngine.externalScroll = !mascotConfig.followScroll;
+			}
+
+			// 打包环境下必须显式指定资源基址，否则精灵图会按站点根目录解析
+			mod.configure({
+				assets: `${base}/mascot_pack`,
+				animationConfigUrl: `${base}/animation.config.json`,
+			});
+
+			const mascotHost = document.getElementById("mascot-viewport") ?? document.body;
+
+			for (const pack of mascotConfig.packs) {
+				try {
+					await mod.createMascot({
+						container: mascotHost,
+						pack,
+						clickThrough: mascotConfig.clickThrough,
+						scrollSquash: mascotConfig.scrollSquash,
+					});
+				} catch (error) {
+					console.warn(`[mascot] 宠物「${pack}」加载失败`, error);
+				}
+			}
+
+			// 包裹层可能在首帧之后才插入，用 MutationObserver 补正到全部就位为止
+			if (raiseMascotLayers()) return;
+
+			let scheduled = false;
+			const observer = new MutationObserver(() => {
+				if (scheduled) return;
+				scheduled = true;
+				requestAnimationFrame(() => {
+					scheduled = false;
+					if (raiseMascotLayers()) observer.disconnect();
+				});
+			});
+			observer.observe(document.body, { childList: true, subtree: true });
+			window.setTimeout(() => observer.disconnect(), 30000);
+		}
+
+		function scheduleMascots(): void {
+			// Swup 切页会重跑脚本，用 window 标记保证只挂载一次
+			const scope = window as unknown as Record<string, unknown>;
+			if (scope[BOOTED_FLAG]) return;
+			scope[BOOTED_FLAG] = true;
+
+			if (mascotConfig.skipOnMobile && window.innerWidth < 768) return;
+
+			const start = () => {
+				window.setTimeout(() => {
+					void mountMascots();
+				}, mascotConfig.idleDelayMs);
+			};
+
+			const idleCallback = (
+				window as Window & {
+					requestIdleCallback?: (
+						cb: () => void,
+						options?: { timeout: number },
+					) => number;
+				}
+			).requestIdleCallback;
+
+			if (typeof idleCallback === "function") {
+				idleCallback(start, { timeout: 4000 });
+			} else {
+				window.addEventListener("load", start, { once: true });
+			}
+		}
+
+		scheduleMascots();
+	</script>
+)}

@@ -1,0 +1,92 @@
+{
+  "_readme": [
+    "web-mascot 动画配置规范文件 (Standard Animation Configuration File)。",
+    "引擎支持双预设体系：",
+    "  - preset: 'lively' (默认)：温和缩短已知保持段，完整播放表演；12秒静止后请求在完成点换位；",
+    "  - preset: 'classic'：沿用素材原生时长与合法候选权重，不启用 pacer 或保持预算。",
+    "你可以在本文件中基于 preset 微调 defaults，或在 mascots 中按宠物定制。",
+    "字段详细说明与约束区间见 ANIMATION_CONFIG.md 与 src/core/animationPreset.ts。"
+  ],
+  "version": 1,
+  "preset": "lively",
+  "respectReducedMotion": true,
+  "defaults": {
+    "spawn": {
+      "topOffset": 100,
+      "staggerPx": 180
+    },
+    "forcedSwitchTicks": 300,
+    "pacerExemptBehaviors": [
+      "SitWhileDanglingLegs"
+    ],
+    "exitToPoolBehaviors": [
+      "SitWhileDanglingLegs"
+    ],
+    "maxBehaviorTicks": 1100,
+    "actionHoldLimits": {
+      "Stand": {
+        "ticks": [
+          150,
+          250
+        ],
+        "waitPoses": [
+          0,
+          2,
+          4
+        ]
+      },
+      "Sit": {
+        "ticks": [
+          200,
+          350
+        ],
+        "waitPoses": [
+          0,
+          2,
+          4
+        ]
+      },
+      "Sprawl": {
+        "ticks": [
+          200,
+          350
+        ],
+        "waitPoses": [
+          0,
+          2,
+          4
+        ]
+      },
+      "GrabWall": {
+        "ticks": [
+          200,
+          300
+        ],
+        "waitPoses": [
+          0,
+          2,
+          4
+        ]
+      },
+      "GrabCeiling": {
+        "ticks": [
+          200,
+          300
+        ],
+        "waitPoses": [
+          0,
+          2,
+          4
+        ]
+      }
+    },
+    "repeatBehaviorWeight": 0.65,
+    "interactionCooldownTicks": 500,
+    "behaviorWeights": {
+      "SitWhileDanglingLegs": 150,
+      "SitAndFaceMouse": 8
+    }
+  },
+  "mascots": {},
+  "reducedMotion": {}
+}

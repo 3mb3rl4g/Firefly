@@ -380,7 +380,7 @@ setcookie("name", "value", time()+3600, "/", "", false, true);
 //                                                              HttpOnly
 ```
 
-### 9.4 思考题
+### 9.4 常见疑问
 
 **问：** XSS 代码植入后，将 Cookie 发送到 XSS 平台（不同源网站），为什么能成功？
 
